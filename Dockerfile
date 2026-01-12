@@ -1,36 +1,51 @@
-# Base image with PHP + Apache
+# ================================
+# Dockerfile for Laravel + Apache
+# ================================
+
+# 1️⃣ Base image with PHP + Apache
 FROM php:8.2-apache
 
-# Install system dependencies and PHP extensions
+# 2️⃣ Install system dependencies and PHP extensions
 RUN apt-get update && apt-get install -y \
-    libzip-dev unzip git \
-    && docker-php-ext-install pdo pdo_mysql \
+    libzip-dev \
+    unzip \
+    git \
+    libpq-dev \
+    && docker-php-ext-install pdo pdo_mysql pdo_pgsql \
     && a2enmod rewrite
 
-# Set working directory
+# 3️⃣ Set working directory inside container
 WORKDIR /var/www/html
 
-# Copy only composer files first (for caching)
-COPY composer.json composer.lock ./
+# 4️⃣ Copy entire Laravel project
+COPY . .
 
-# Install PHP dependencies
+# 5️⃣ Install Composer
 RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
     && php composer-setup.php --install-dir=/usr/local/bin --filename=composer \
     && php -r "unlink('composer-setup.php');"
 
+# 6️⃣ Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader
 
-# Copy the rest of the app
-COPY . .
+# 7️⃣ Run Laravel post-install commands
+RUN php artisan key:generate \
+    && php artisan config:clear \
+    && php artisan cache:clear \
+    && php artisan route:clear \
+    && php artisan view:clear \
+    && php artisan storage:link || true \
+    && php artisan package:discover --ansi
 
-# Set Apache DocumentRoot to Laravel's public folder
+# 8️⃣ Set Apache DocumentRoot to Laravel's public folder
 RUN sed -i 's|/var/www/html|/var/www/html/public|g' /etc/apache2/sites-available/000-default.conf
 
-# Set permissions for storage and cache
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+# 9️⃣ Set permissions for storage and cache
+RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache \
+    && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
-# Expose port 80
+# 🔟 Expose Apache port
 EXPOSE 80
 
-# Start Apache
+# 1️⃣1️⃣ Start Apache in the foreground
 CMD ["apache2-foreground"]
