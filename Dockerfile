@@ -34,6 +34,10 @@ RUN mkdir -p storage/framework/{cache,sessions,views} \
     && touch storage/logs/laravel.log \
     && chown -R www-data:www-data storage bootstrap/cache \
     && chmod -R 775 storage bootstrap/cache
+
+    # After composer install and storage setup
+RUN php artisan migrate --force || true
+
 # 8️⃣ Run Laravel post-install commands
 RUN php artisan key:generate \
     && php artisan config:clear \
