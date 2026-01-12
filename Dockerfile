@@ -29,13 +29,11 @@ RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
 RUN composer install --no-dev --optimize-autoloader
 
 # 7️⃣ Ensure storage directories exist and are writable
-RUN mkdir -p storage/framework/cache \
-    storage/framework/sessions \
-    storage/framework/views \
+RUN mkdir -p storage/framework/{cache,sessions,views} \
     storage/logs \
+    && touch storage/logs/laravel.log \
     && chown -R www-data:www-data storage bootstrap/cache \
     && chmod -R 775 storage bootstrap/cache
-
 # 8️⃣ Run Laravel post-install commands
 RUN php artisan key:generate \
     && php artisan config:clear \
