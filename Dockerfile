@@ -28,7 +28,15 @@ RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
 # 6️⃣ Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader
 
-# 7️⃣ Run Laravel post-install commands
+# 7️⃣ Ensure storage directories exist and are writable
+RUN mkdir -p storage/framework/cache \
+    storage/framework/sessions \
+    storage/framework/views \
+    storage/logs \
+    && chown -R www-data:www-data storage bootstrap/cache \
+    && chmod -R 775 storage bootstrap/cache
+
+# 8️⃣ Run Laravel post-install commands
 RUN php artisan key:generate \
     && php artisan config:clear \
     && php artisan cache:clear \
@@ -37,12 +45,8 @@ RUN php artisan key:generate \
     && php artisan storage:link || true \
     && php artisan package:discover --ansi
 
-# 8️⃣ Set Apache DocumentRoot to Laravel's public folder
+# 9️⃣ Set Apache DocumentRoot to Laravel's public folder
 RUN sed -i 's|/var/www/html|/var/www/html/public|g' /etc/apache2/sites-available/000-default.conf
-
-# 9️⃣ Set permissions for storage and cache
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache \
-    && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
 # 🔟 Expose Apache port
 EXPOSE 80
