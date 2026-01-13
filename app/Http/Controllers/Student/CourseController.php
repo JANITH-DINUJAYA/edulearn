@@ -107,4 +107,11 @@ class CourseController extends Controller
     // 3. Redirect back with a success message
     return back()->with('success', 'Thank you for your feedback!');
 }
+public function details(Course $course) {
+    // Load counts and ratings for the landing page
+    $course->loadCount('lessons', 'quizzes', 'assignments');
+    return view('student.courses.details', compact('course'));
+}
+
+
 }

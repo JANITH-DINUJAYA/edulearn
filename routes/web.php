@@ -126,6 +126,11 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/courses/{course}/enroll', [StudentCourseController::class, 'enroll'])->name('courses.enroll');
         Route::get('/lessons/{lesson}', [StudentLessonController::class, 'show'])->name('lessons.show');
         // Quizzes
+        // Page to view course details before enrolling
+Route::get('/courses/{course}/details', [App\Http\Controllers\Student\CourseController::class, 'details'])
+        ->name('courses.details');
+Route::post('/courses/{course}/enroll', [App\Http\Controllers\Student\CourseController::class, 'enroll'])
+        ->name('courses.enroll');
         Route::get('/quizzes/{quiz}', [StudentQuizController::class, 'show'])->name('quizzes.show');
         Route::post('/quizzes/{quiz}/submit', [StudentQuizController::class, 'submit'])->name('quizzes.submit');
         Route::get('/student/courses/{course}', [App\Http\Controllers\Student\CourseController::class, 's'])
